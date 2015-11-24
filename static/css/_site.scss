@@ -1,0 +1,92 @@
+$wrap-vpad: 1rem;
+$wrap-hpad: 1.5rem;
+
+.wrap {
+  padding: $wrap-vpad $wrap-hpad;
+}
+
+.hide {
+  display: none;
+}
+
+%click {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.site {
+  height: 100%;
+  overflow: hidden;
+}
+
+.site__section {
+  border-right: 1px solid $background-accent;
+}
+
+$menu-height: $lineheight + 2 * $wrap-vpad;
+
+.site__menu {
+  width: 100%;
+  background: $background-menu;
+  border-bottom: 1px solid $background-accent;
+
+  input[type="button"] {
+    @extend %click;
+    margin-right: 1rem;
+  }
+}
+
+.site__section {
+  height: calc(100% - #{$menu-height});
+  overflow: scroll;
+}
+
+.site__global li {
+  @extend %click;
+  margin-bottom: .5rem;
+
+  &.active {
+    font-weight: bold;
+  }
+}
+
+$edit-title-height: 1.0rem + 2 * $wrap-vpad;
+$edit-preamble-height: 5.0rem + 2 * $wrap-vpad;
+
+.site__edit {
+  display: none;
+}
+
+.view__title {
+  font-weight: bold;
+  margin-bottom: 1rem;
+  font-size: $size-large;
+}
+
+.site__edit {
+  textarea {
+    width: 100%;
+    font-family: $font-input;
+    font-size: $size-input;
+    line-height: $lineheight-input-unitless;
+  }
+
+  textarea + textarea {
+    border-top: 1px solid $background-accent;
+  }
+}
+
+.edit__title {
+  height: $edit-title-height;
+}
+
+.edit__preamble {
+  height: $edit-preamble-height;
+}
+
+.edit__content {
+  height: calc(100% - #{$edit-title-height} - #{$edit-preamble-height});
+}

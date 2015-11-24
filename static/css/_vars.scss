@@ -1,0 +1,24 @@
+$font-main: "Times New Roman", serif;
+$font-input: "Menlo", monospace;
+
+$size-base: (16/16)*100%;
+$size-input: (13/16)*100%;
+$size-small: .9em;
+$size-large: 1.2em;
+
+$lineheight-unitless: 1.3;
+$lineheight: $lineheight-unitless * 1rem;
+$lineheight-input-unitless: 1.3;
+$lineheight-input: $lineheight-input-unitless * 1rem;
+
+$background-base: #ffffff;
+$background-menu: #eeeeee;
+$background-accent: #cccccc;
+
+$color-base: #333333;
+$color-light: #777777;
+$color-accent: #777733;
+
+$smallskip: 0.5rem;
+$medskip: 1.0rem;
+$bigskip: 2.0rem;

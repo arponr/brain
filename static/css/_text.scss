@@ -1,0 +1,93 @@
+.text {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: bold;
+    margin-top: $medskip;
+    display: inline-block;
+
+    &:after {
+      content: '.  ';
+    }
+
+    & + p {
+      display: inline;
+
+      &:after {
+        content: " ";
+        display: block;
+      }
+    }
+  }
+
+  hr,
+  blockquote,
+  figure {
+    margin: $medskip 0;
+  }
+
+  ul,
+  ol, {
+    margin: $smallskip 0;
+  }
+
+  p + p {
+    text-indent: 1.2em;
+  }
+
+  li {
+    ul,
+    ol {
+      margin-bottom: 0;
+    }
+  }
+
+  figure {
+    &, img {
+      width: 100%;
+    }
+
+    figcaption {
+      width: 75%;
+    }
+  }
+
+  blockquote {
+    border-left: 2px solid $background-accent;
+    margin-left: 2px;
+    padding-left: 1rem;
+  }
+
+  ul {
+    list-style-type: disc;
+  }
+
+  ol {
+    list-style-type: lower-alpha;
+  }
+
+  ul, ol {
+    margin-left: 2.0rem;
+
+    li {
+      margin-bottom: 0.3rem;
+
+      ul {
+        list-style-type: circle;
+      }
+
+      ol {
+        list-style-type: lower-roman;
+      }
+
+      ul, ol {
+        li {
+          margin-bottom: 0.1rem;
+        }
+      }
+    }
+  }
+}
