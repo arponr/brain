@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	_ "github.com/lib/pq"
+	_ "github.com/arponr/brain/Godeps/_workspace/src/github.com/lib/pq"
 )
 
 type Node struct {
