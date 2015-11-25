@@ -5,20 +5,20 @@ Brain.debug = true;
 
 Brain.Util = {};
 
-Brain.Util.unJQuery = function(f) {
-    return function(el) { f(el instanceof jQuery ? el[0] : el); }
-};
+Brain.Util.clone = function(obj) {
+    return $.extend(true, {}, obj);
+}
 
-Brain.Util.jax = Brain.Util.unJQuery(function (el) {
-    MathJax.Hub.Typeset(el);
-});
+////////////////////////////////////////////////////////////////////////////////
 
-Brain.Util.reCensor = /\$\$[^\$]+\$\$|\$[^\$]+\$/gm;
-Brain.Util.reUncensor = /\$(\d+)\$/gm;
-Brain.Util.reNumSec = /^(#+)(.*)@([\w|-]+)/gm;
-Brain.Util.reRef = /@([\w|-]+)/gm;
+Brain.Text = {};
 
-Brain.Util.texdown = function(text) {
+Brain.Text.reCensor = /\$\$[^\$]+\$\$|\$[^\$]+\$/gm;
+Brain.Text.reUncensor = /\$(\d+)\$/gm;
+Brain.Text.reNumSec = /^(#+)(.*)@([\w|-]+)/gm;
+Brain.Text.reRef = /@([\w|-]+)/gm;
+
+Brain.Text.texdown = function(text) {
     var math = [];
     var tags = {};
     var sec = [0, 0, 0, 0, 0, 0];
@@ -55,18 +55,12 @@ Brain.Util.texdown = function(text) {
     function replUncensor(m, i, o, s) {
         return math[parseInt(i)];
     }
-    labeled = text.replace(Brain.Util.reNumSec, replNumSec);
-    refed = labeled.replace(Brain.Util.reRef, replRef);
-    censored = refed.replace(Brain.Util.reCensor, replCensor);
+    labeled = text.replace(Brain.Text.reNumSec, replNumSec);
+    refed = labeled.replace(Brain.Text.reRef, replRef);
+    censored = refed.replace(Brain.Text.reCensor, replCensor);
     html = marked(censored);
-    return html.replace(Brain.Util.reUncensor, replUncensor);
+    return html.replace(Brain.Text.reUncensor, replUncensor);
 };
-
-////////////////////////////////////////////////////////////////////////////////
-
-function clone(obj) {
-    return $.extend(true, {}, obj);
-}
     
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -76,16 +70,16 @@ Brain.UI = function() {
     var root = { id: 0 };
     
     $(document).ready(function() {
-        $('.menu__new-parent').click(parentNewNode);
-        $('.menu__new-child').click(childNewNode);
+        $('.parent__new').click(parentNewNode);
+        $('.child__new').click(childNewNode);
         $('.menu__back').click(directoryUp);
         $('.menu__browse').click(function() {
-            $('.site__global').show();
-            $('.site__edit').hide();
+            $('.site__global').toggle();
+            $('.site__edit').toggle();
         });
         $('.menu__edit').click(function() {
-            $('.site__global').hide();
-            $('.site__edit').show();
+            $('.site__global').toggle();
+            $('.site__edit').toggle();
         });
         $('.menu__delete').click(deleteNode);
         
@@ -125,7 +119,7 @@ Brain.UI = function() {
             preamble = $.trim(preamble) ? ("$" + preamble + "$") : "";
             $('.view__preamble').text(preamble);
             $('.view__content')
-                .html(Brain.Util.texdown($('.edit__content').val()));
+                .html(Brain.Text.texdown($('.edit__content').val()));
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, $('.site__view')[0]]);
             MathJax.Hub.Queue(function() {
                 $('.site__view').scrollTop(scroll);
@@ -175,6 +169,7 @@ Brain.UI = function() {
     }
 
     function deleteNode() {
+        if (!ui.child.node.id) return;
         $.ajax({
             method: 'POST',
             url: 'data/deletenode',
@@ -193,10 +188,10 @@ Brain.UI = function() {
         $('.node-' + id).addClass("active");
     }
     
-    function parentAppend(node) {
+    function parentPrepend(node) {
         $('<li></li>').text(node.title)
             .addClass('node-' + node.id)
-            .appendTo('.global__parent')
+            .prependTo('.global__parent')
             .click(function() {
                 ui.child.node = node;
                 activateNode(node.id)
@@ -207,12 +202,12 @@ Brain.UI = function() {
             });
     }
     
-    function childAppend(node) {
+    function childPrepend(node) {
         $('<li></li>').text(node.title)
             .addClass('node-' + node.id)
-            .appendTo('.global__child')
+            .prependTo('.global__child')
             .click(function() {
-                ui.parent = clone(ui.child);
+                ui.parent = Brain.Util.clone(ui.child);
                 parentRefresh();
                 
                 ui.child.node = node;
@@ -232,7 +227,7 @@ Brain.UI = function() {
             return;
         }
         
-        ui.child = clone(ui.parent);
+        ui.child = Brain.Util.clone(ui.parent);
         childRefresh();
 
         var parentId = ui.parent.node.parentId;        
@@ -260,11 +255,12 @@ Brain.UI = function() {
         }).done(function(msg) {
             var node = msg.node;
             ui.parent.children.push(node);
-            parentAppend(node);
+            parentPrepend(node);
         });
     }
 
     function childNewNode() {
+        if (!ui.child.node.id) return;
         $.ajax({
             method: 'POST',
             url: 'data/newnode',
@@ -273,14 +269,14 @@ Brain.UI = function() {
         }).done(function(msg) {
             var node = msg.node;
             ui.child.children.push(node);
-            childAppend(node);
+            childPrepend(node);
         });
     }
 
     function parentRefresh() {
-        $('.global__parent').empty();
-        for (var i = 0; i < ui.parent.children.length; i++) {
-            parentAppend(ui.parent.children[i]);
+        $('.global__parent li').remove();
+        for (var i = ui.parent.children.length - 1; i >= 0 ; i--) {
+            parentPrepend(ui.parent.children[i]);
         }
     }
     
@@ -290,9 +286,9 @@ Brain.UI = function() {
         $('.edit__content').val(ui.child.node.content);
         compile();
 
-        $('.global__child').empty();
-        for (var i = 0; i < ui.child.children.length; i++) {
-            childAppend(ui.child.children[i]);
+        $('.global__child li').remove();
+        for (var i = ui.child.children.length - 1; i >= 0; i--) {
+            childPrepend(ui.child.children[i]);
         }
     }
 };

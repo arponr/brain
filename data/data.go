@@ -37,31 +37,9 @@ func (t byTitle) Less(i, j int) bool { return t[i].Title < t[j].Title }
 
 var db *sql.DB
 
-func dbURL() string {
-	return os.Getenv("DATABASE_URL")
-	// if os.Getenv("LOCALDEV") == "true" {
-	// 	return os.Getenv("DATABASE_URL")
-	// } else {
-	// 	regex := regexp.MustCompile(
-	// 		"(?i)^postgres://(?:([^:@]+):([^@]*)@)?([^@/:]+):(\\d+)/(.*)$")
-	// 	matches := regex.FindStringSubmatch(os.Getenv("DATABASE_URL"))
-	// 	if matches == nil {
-	// 		log.Fatalf("DATABASE_URL variable must look like: "+
-	// 			"postgres://username:password@hostname:port/dbname (not '%v')",
-	// 			os.Getenv("DATABASE_URL"))
-	// 	}
-	// 	sslmode := os.Getenv("PGSSL")
-	// 	if sslmode == "" {
-	// 		sslmode = "disable"
-	// 	}
-	// 	return fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
-	// 		matches[1], matches[2], matches[3], matches[4], matches[5], sslmode)
-	// }
-}
-
 func OpenDB() error {
 	var err error
-	db, err = sql.Open("postgres", dbURL())
+	db, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	return err
 }
 

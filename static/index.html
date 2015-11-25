@@ -12,17 +12,19 @@
   <body>
     <div class="site grid">
       <div class="site__menu wrap">
-        <input class="menu__new-parent" type="button" value="New Parent Node">
-        <input class="menu__new-child" type="button" value="New Child Node">
-        <input class="menu__back" type="button" value="Back">
-        <input class="menu__browse" type="button" value="Browse">
-        <input class="menu__edit" type="button" value="Edit">
-        <input class="menu__delete" type="button" value="Delete">
+        <input class="menu__back left" type="button" value="&#8592;">
+
+        <input class="menu__delete right" type="button" value="&#8594;">
+        <input class="menu__edit right" type="button" value="&#8592;">
+        <input class="menu__delete right" type="button" value="Delete">
+        <input class="menu__edit right" type="button" value="Edit">
       </div>
       <div class="site__global grid grid__col grid__col-1-2">
         <ul class="global__parent site__section wrap grid__col grid__col-1-2">
+          <input class="parent__new" type="button" value="+">
         </ul>
         <ul class="global__child site__section wrap grid__col grid__col-1-2">
+          <input class="child__new" type="button" value="+">
         </ul>
       </div>
       <div class="site__edit site__section grid__col grid__col-1-2">
