@@ -1,125 +1,72 @@
-var Brain = {};
-Brain.debug = true;
-
-////////////////////////////////////////////////////////////////////////////////
-
-Brain.Util = {};
-
-Brain.Util.clone = function(obj) {
-    return $.extend(true, {}, obj);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-Brain.Text = {};
-
-Brain.Text.reCensor = /\$\$[^\$]+\$\$|\$[^\$]+\$/gm;
-Brain.Text.reUncensor = /\$(\d+)\$/gm;
-Brain.Text.reNumSec = /^(#+)(.*)@([\w|-]+)/gm;
-Brain.Text.reRef = /@([\w|-]+)/gm;
-
-Brain.Text.texdown = function(text) {
-    var math = [];
-    var tags = {};
-    var sec = [0, 0, 0, 0, 0, 0];
-    var secDepth = 0;
-    function genLabel() {
-        var label = "";
-        for (var i = 0; i <= secDepth; i++) {
-            label += sec[i] + ".";
-        }
-        return label;
-    }
-    function replNumSec(match, hash, title, tag, offset, string) {
-        var depth = hash.length - 1;
-        sec[depth]++;
-        for (var i = depth + 1; i <= secDepth; i++) {
-            sec[i] = 0;
-        }
-        secDepth = depth;
-        var label = genLabel(depth);
-        tags[tag] = label.slice(0, -1);
-        var link = '<a id="' + tag + '"></a>';
-        return [hash, label, title, link].join(" ");
-    }
-    function replRef(match, tag, offset, string) {
-        return "(" + tags[tag] + ")";
-    }
-    function replUncensor(match, ind, offset, string) {
-        return math[parseInt(ind)];
-    }
-    function replCensor(match) {
-        math.push(match);
-        return "$" + (math.length - 1).toString() + "$";
-    }
-    function replUncensor(m, i, o, s) {
-        return math[parseInt(i)];
-    }
-    labeled = text.replace(Brain.Text.reNumSec, replNumSec);
-    refed = labeled.replace(Brain.Text.reRef, replRef);
-    censored = refed.replace(Brain.Text.reCensor, replCensor);
-    html = marked(censored);
-    return html.replace(Brain.Text.reUncensor, replUncensor);
-};
-    
-////////////////////////////////////////////////////////////////////////////////
-
-
-Brain.UI = function() {
-    var ui = this;
+(function($, markdown) {
     var root = { id: 0 };
-    
+    var parent = { node: root, children: [] }
+    var child = { node: {}, children: [] };
+    var compileTimeout = 0;
+    var updateTimeout = 0;
+
     $(document).ready(function() {
+        initUI();
+
+        getChildren(root.id, function(children) {
+            parent.children = children;
+            parentRefresh();
+        });
+    });
+
+    function initUI() {
         $('.parent__new').click(parentNewNode);
         $('.child__new').click(childNewNode);
         $('.menu__back').click(directoryUp);
-        $('.menu__browse').click(function() {
-            $('.site__global').toggle();
-            $('.site__edit').toggle();
-        });
         $('.menu__edit').click(function() {
             $('.site__global').toggle();
             $('.site__edit').toggle();
         });
         $('.menu__delete').click(deleteNode);
-        
-        ui.compileTimeout = 0;
-        ui.updateTimeout = 0;
+
+        $('.meta__switch').click(function() {
+            $('.edit__title').toggle();
+            $('.edit__tag').toggle();
+        });
+        $('.main__switch').click(function() {
+            $('.edit__content').toggle();
+            $('.edit__preamble').toggle();
+        });
         
         $('.edit__title').on('input', function(e) {
             updateNode({ title: e.target.value });
             compile();
         });
-        $('.edit__preamble').on('input', function(e) {
-            updateNode({ preamble: e.target.value });
+        $('.edit__tag').on('input', function(e) {
+            updateNode({ tag: e.target.value });
             compile();
         });
         $('.edit__content').on('input', function(e) {
             updateNode({ content: e.target.value });
             compile();
         });
-        
-        ui.parent = { node: root, children: [] }
-        ui.child = { node: {}, children: [] };
-        getChildren(root.id, function(children) {
-            ui.parent.children = children;
-            parentRefresh();
+        $('.edit__preamble').on('input', function(e) {
+            updateNode({ preamble: e.target.value });
+            compile();
         });
-    });
+    }
 
     function compile() {
-        clearTimeout(ui.compileTimeout);
-        ui.compileTimeout = setTimeout(function() {
+        clearTimeout(compileTimeout);
+        compileTimeout = setTimeout(function() {
             var scroll = $('.site__view').scrollTop();
+            
             $('.begingroup').html("$\\begingroup$");
             $('.endgroup').html("$\\endgroup$");
-            $('.view__title')
-                .text($('.edit__title').val());
+            
+            $('.view__title').text($('.edit__title').val());
+            
             var preamble = $('.edit__preamble').val();
             preamble = $.trim(preamble) ? ("$" + preamble + "$") : "";
             $('.view__preamble').text(preamble);
-            $('.view__content')
-                .html(Brain.Text.texdown($('.edit__content').val()));
+            
+            $('.view__content').html(texdown($('.edit__content').val()));
+            
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, $('.site__view')[0]]);
             MathJax.Hub.Queue(function() {
                 $('.site__view').scrollTop(scroll);
@@ -137,7 +84,7 @@ Brain.UI = function() {
             cb(msg.node);
         });
     }
-    
+
     function getChildren(parentId, cb) {
         $.ajax({
             method: 'POST',
@@ -148,36 +95,38 @@ Brain.UI = function() {
             cb(msg.children);
         });
     }
-    
+
     function updateNode(data) {
-        var node = ui.child.node;
-        if (!node.id) return;
+        if (!child.node.id) return;
+        
         for (k in data) {
-            node[k] = data[k];
+            child.node[k] = data[k];
         }
-        clearTimeout(ui.updateTimeout);
-        ui.updateTimeout = setTimeout(function() {
+        
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(function() {
             $.ajax({
                 method: 'POST',
                 url: 'data/updatenode',
                 dataType: 'json',
-                data : JSON.stringify({ node: node }),
+                data : JSON.stringify({ node: child.node }),
             }).done(function() {
-                $('.node-' + node.id).text(node.title);
+                $('.node-' + child.node.id).text(child.node.title);
             });
         }, 1000);
     }
 
     function deleteNode() {
-        if (!ui.child.node.id) return;
+        if (!child.node.id) return;
+        
         $.ajax({
             method: 'POST',
             url: 'data/deletenode',
             dataType: 'json',
-            data : JSON.stringify({ id: ui.child.node.id }),
+            data : JSON.stringify({ id: child.node.id }),
         }).done(function() {
-            getChildren(ui.parent.node.id, function(children) {
-                ui.parent.children = children;
+            getChildren(parent.node.id, function(children) {
+                parent.children = children;
                 directoryUp();
             });
         });
@@ -187,112 +136,162 @@ Brain.UI = function() {
         $('.global__parent li').removeClass("active");
         $('.node-' + id).addClass("active");
     }
-    
+
     function parentPrepend(node) {
         $('<li></li>').text(node.title)
             .addClass('node-' + node.id)
             .prependTo('.global__parent')
             .click(function() {
-                ui.child.node = node;
+                child.node = node;
                 activateNode(node.id)
                 getChildren(node.id, function(children) {
-                    ui.child.children = children;
+                    child.children = children;
                     childRefresh();
                 });
             });
     }
-    
+
     function childPrepend(node) {
         $('<li></li>').text(node.title)
             .addClass('node-' + node.id)
             .prependTo('.global__child')
             .click(function() {
-                ui.parent = Brain.Util.clone(ui.child);
+                parent = clone(child);
                 parentRefresh();
                 
-                ui.child.node = node;
+                child.node = node;
                 activateNode(node.id)
                 getChildren(node.id, function(children) {
-                    ui.child.children = children;
+                    child.children = children;
                     childRefresh();
                 });
             });
     }
 
     function directoryUp() {
-        if (ui.parent.node.id === root.id) {
-            ui.child = { node: {}, children: [] }
+        if (parent.node.id === root.id) {
+            child = { node: {}, children: [] }
             childRefresh();
             parentRefresh();
             return;
         }
         
-        ui.child = Brain.Util.clone(ui.parent);
+        child = clone(parent);
         childRefresh();
 
-        var parentId = ui.parent.node.parentId;        
+        var parentId = parent.node.parentId;        
         if (parentId === root.id) {
-            ui.parent.node = root;
+            parent.node = root;
         } else {
             getNode(parentId, function(node) {
-                ui.parent.node = node;
+                parent.node = node;
             });
         }
         
         getChildren(parentId, function(children) {
-            ui.parent.children = children;
+            parent.children = children;
             parentRefresh();
-            activateNode(ui.child.node.id);
+            activateNode(child.node.id);
         });
     }
-    
+
     function parentNewNode() {
         $.ajax({
             method: 'POST',
             url: 'data/newnode',
             dataType: 'json',
-            data : JSON.stringify({ parentId: ui.parent.node.id }),
+            data : JSON.stringify({ parentId: parent.node.id }),
         }).done(function(msg) {
             var node = msg.node;
-            ui.parent.children.push(node);
+            parent.children.push(node);
             parentPrepend(node);
         });
     }
 
     function childNewNode() {
-        if (!ui.child.node.id) return;
+        if (!child.node.id) return;
         $.ajax({
             method: 'POST',
             url: 'data/newnode',
             dataType: 'json',
-            data : JSON.stringify({ parentId: ui.child.node.id }),
+            data : JSON.stringify({ parentId: child.node.id }),
         }).done(function(msg) {
             var node = msg.node;
-            ui.child.children.push(node);
+            child.children.push(node);
             childPrepend(node);
         });
     }
 
     function parentRefresh() {
         $('.global__parent li').remove();
-        for (var i = ui.parent.children.length - 1; i >= 0 ; i--) {
-            parentPrepend(ui.parent.children[i]);
+        for (var i = parent.children.length - 1; i >= 0 ; i--) {
+            parentPrepend(parent.children[i]);
         }
     }
-    
+
     function childRefresh() {
-        $('.edit__title').val(ui.child.node.title);
-        $('.edit__preamble').val(ui.child.node.preamble);
-        $('.edit__content').val(ui.child.node.content);
+        $('.edit__title').val(child.node.title);
+        $('.edit__tag').val(child.node.tag);
+        $('.edit__preamble').val(child.node.preamble);
+        $('.edit__content').val(child.node.content);
         compile();
 
         $('.global__child li').remove();
-        for (var i = ui.child.children.length - 1; i >= 0; i--) {
-            childPrepend(ui.child.children[i]);
+        for (var i = child.children.length - 1; i >= 0; i--) {
+            childPrepend(child.children[i]);
         }
     }
-};
+    
+    function texdown(text) {
+        var math = [];
+        var tags = {};
+        var sec = [];
 
-////////////////////////////////////////////////////////////////////////////////
+        // detect sections to be labeled
+        var reNumSec = /^(#+)(.*)@([\w|-]+)/gm;
+        function replNumSec(match, hash, title, tag, offset, string) {
+            var depth = hash.length - 1;
+            
+            sec.splice(depth + 1, sec.length);
+            for (var i = sec.length; i <= depth; i++) {
+                sec.push(0);
+            }
+            sec[depth]++;
+            
+            var label = sec.join(".");
+            tags[tag] = label;
+            var link = '<a id="' + tag + '"></a>';
+            return [hash, link, label + ".", title].join(" ");
+        }
 
-ui = new Brain.UI;
+        // detects internal references
+        var reRef = /@([\w|-]+)/gm;
+        function replRef(match, tag, offset, string) {
+            return "(" + tags[tag] + ")";
+        }
+        
+        // detects latex to be censored/saved before markdown parsing
+        var reCensor = /\$\$[^\$]+\$\$|\$[^\$]+\$/gm;
+        function replCensor(match) {
+            math.push(match);
+            return "$" + (math.length - 1).toString() + "$";
+        }
+        
+        // detects censored latex to be refilled after markdown parsing
+        var reUncensor = /\$(\d+)\$/gm;
+        function replUncensor(match, ind, offset, string) {
+            return math[parseInt(ind)];
+        }
+        
+        return markdown(
+            text.replace(reNumSec, replNumSec)
+                .replace(reRef, replRef)
+                .replace(reCensor, replCensor)
+        ).replace(reUncensor, replUncensor);
+            
+    }
+
+    function clone(obj) {
+        return $.extend(true, {}, obj);
+    }
+})($, marked);

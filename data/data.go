@@ -2,10 +2,7 @@ package data
 
 import (
 	"database/sql"
-	//	"fmt"
-	//	"log"
 	"os"
-	//	"regexp"
 	"sort"
 	"time"
 

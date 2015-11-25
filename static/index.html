@@ -21,16 +21,23 @@
       </div>
       <div class="site__global grid grid__col grid__col-1-2">
         <ul class="global__parent site__section wrap grid__col grid__col-1-2">
-          <input class="parent__new" type="button" value="+">
+          <input class="parent__new topright" type="button" value="+">
         </ul>
         <ul class="global__child site__section wrap grid__col grid__col-1-2">
-          <input class="child__new" type="button" value="+">
+          <input class="child__new topright" type="button" value="+">
         </ul>
       </div>
-      <div class="site__edit site__section grid__col grid__col-1-2">
-        <textarea class="edit__title wrap" placeholder="Title"></textarea>
-        <textarea class="edit__preamble wrap" placeholder="Preamble"></textarea>
-        <textarea class="edit__content wrap" placeholder="Content"></textarea>
+      <div class="site__edit hide site__section grid__col grid__col-1-2">
+        <div class="edit__meta">
+          <textarea class="edit__title wrap" placeholder="Title"></textarea>
+          <textarea class="edit__tag hide wrap" placeholder="Tag"></textarea>
+          <input class="meta__switch topright" type="button" value="&#8596;">
+        </div>
+        <div class="edit__main">
+          <textarea class="edit__content wrap" placeholder="Content"></textarea>
+          <textarea class="edit__preamble hide wrap" placeholder="Preamble"></textarea>
+          <input class="main__switch topright" type="button" value="&#8596;">
+        </div>
       </div>
       <div class="site__view site__section grid__col grid__col-1-2 wrap">
         <div class="begingroup hide"></div>
