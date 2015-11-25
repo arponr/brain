@@ -230,10 +230,10 @@
     }
 
     function childRefresh() {
-        $('.edit__title').val(child.node.title);
-        $('.edit__tag').val(child.node.tag);
-        $('.edit__preamble').val(child.node.preamble);
-        $('.edit__content').val(child.node.content);
+        $('.edit__title').val(child.node.title).show();
+        $('.edit__tag').val(child.node.tag).hide();
+        $('.edit__content').val(child.node.content).show();
+        $('.edit__preamble').val(child.node.preamble).hide();
         compile();
 
         $('.global__child li').remove();
