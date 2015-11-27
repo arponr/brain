@@ -102,6 +102,9 @@
         for (k in data) {
             child.node[k] = data[k];
         }
+        if (data.title) {
+            $('.node-' + child.node.id).text(data.title);
+        }
         
         clearTimeout(updateTimeout);
         updateTimeout = setTimeout(function() {
@@ -110,8 +113,6 @@
                 url: 'data/updatenode',
                 dataType: 'json',
                 data : JSON.stringify({ node: child.node }),
-            }).done(function() {
-                $('.node-' + child.node.id).text(child.node.title);
             });
         }, 1000);
     }
