@@ -1,4 +1,6 @@
-(function($, markdown) {
+function Brain($, marked) {
+    marked.setOptions({ smartypants: true });
+
     var root = { id: 0 };
     var parent = { node: root, children: [] }
     var child = { node: {}, children: [] };
@@ -268,7 +270,7 @@
         // detects internal references
         var reRef = /@([\w|-]+)/gm;
         function replRef(match, tag, offset, string) {
-            return "(" + tags[tag] + ")";
+            return "<a onclick=\"brain.toTag('" + tag + "')\">(" + tags[tag] + ")</a>";
         }
         
         // detects latex to be censored/saved before markdown parsing
@@ -284,15 +286,23 @@
             return math[parseInt(ind)];
         }
         
-        return markdown(
+        return marked(
             text.replace(reNumSec, replNumSec)
                 .replace(reRef, replRef)
                 .replace(reCensor, replCensor)
         ).replace(reUncensor, replUncensor);
             
     }
-
+    
     function clone(obj) {
         return $.extend(true, {}, obj);
     }
-})($, marked);
+}
+
+Brain.prototype.toTag = function(tag) {
+    var top = $('.site__view').scrollTop();
+    var delta = $('#' + tag).offset().top - $('.site__view').offset().top
+    $('.site__view').scrollTop(top + delta);
+}
+
+var brain = new Brain($, marked);

@@ -47,7 +47,7 @@ MathJax.Hub.Config({
     },
     showMathMenu: false,
     TeX: {
-        extensions: ["AMSmath.js", "AMSsymbols.js", "begingroup.js"],
+        extensions: ["AMSmath.js", "AMSsymbols.js", "begingroup.js", "/js/xypic.js"],
         TagSide: "left",
         TagIndent: "0em",
         Macros: macros,
