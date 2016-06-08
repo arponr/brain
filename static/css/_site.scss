@@ -37,8 +37,8 @@ $menu-height: $lineheight + 2 * $wrap-vpad;
 .site__menu {
   width: 100%;
   color: $color-light;
-  background: $background-dark;
-  border-bottom: 1px solid $background-accent;
+  background: $background-base;
+  border-bottom: 1px solid $border-base;
   height: $menu-height;
 
   input[type="button"] {
@@ -55,24 +55,41 @@ $menu-height: $lineheight + 2 * $wrap-vpad;
 }
 
 .site__section {
-  border-right: 1px solid $background-accent;
-  height: calc(100% - #{$menu-height});
+  border-right: 1px solid $border-base;
+  /* height: calc(100% - #{$menu-height}); */
   overflow: scroll;
 }
 
-.site__global li {
-  @extend %click;
-  margin-bottom: .75rem;
+.site__global {
+  background: $background-accent;
+  
+  li {
+    @extend %click;
+    margin-bottom: .75rem;
 
-  &.active {
-    font-weight: bold;
+    &.active {
+      font-weight: bold;
+    }
   }
+}
+
+.global__parent,
+.global__child {
+  height: 50%;
+
+  &:focus li.selected {
+    text-decoration: underline;
+  }
+}
+
+.global__parent {
+  border-bottom: 1px solid $border-base;
 }
 
 $edit-meta-height: 1.0rem + 2 * $wrap-vpad;
 
 .edit__main {
-  border-top: 1px solid $background-accent;
+  border-top: 1px solid $border-base;
   height: calc(100% - #{$edit-meta-height});
 }
 
@@ -90,8 +107,9 @@ $edit-meta-height: 1.0rem + 2 * $wrap-vpad;
 
 .view__title {
   font-weight: bold;
-  margin-bottom: 1rem;
+  font-family: $font-text;
   font-size: $size-huge;
+  margin-bottom: 1rem;
 }
 
 .view__content {

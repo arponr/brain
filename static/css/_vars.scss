@@ -1,13 +1,13 @@
-$font-main: "Helvetica Neue", sans-serif;
+$font-main: "Menlo", monospace, "Helvetica Neue", sans-serif;
 $font-input: "Menlo", monospace;
 $font-text: "Times New Roman", serif;
 
-$size-base: 14px;
+$size-base: 13px;
 $size-input: 13px;
 $size-text: 16px;
 $size-small: .9em;
 $size-large: 1.1em;
-$size-huge: 1.3em;
+$size-huge: 1.5em;
 
 $lineheight-unitless: 1.3;
 $lineheight: $lineheight-unitless * 1rem;
@@ -15,8 +15,9 @@ $lineheight-input-unitless: 1.3;
 $lineheight-input: $lineheight-input-unitless * 1rem;
 
 $background-base: #ffffff;
-$background-dark: #444444;
-$background-accent: #cccccc;
+$background-accent: #fdfdfd;
+
+$border-base: #cccccc;
 
 $color-base: #333333;
 $color-light: #dddddd;

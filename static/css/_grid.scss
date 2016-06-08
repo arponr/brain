@@ -6,7 +6,7 @@
         min-height: 1px;
     }
 
-    $ns: 2 4;
+    $ns: 4;
     @each $n in $ns {
         @for $i from 1 through $n {
             &__col-#{$i}-#{$n} {

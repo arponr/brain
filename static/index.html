@@ -10,36 +10,36 @@
   </head>
 
   <body>
-    <div class="site grid">
-      <div class="site__menu wrap">
-        <input class="menu__back left" type="button" value="&#8592;">
+    <div class="site grid" tabindex="-1">
+      <!-- <div class="site__menu wrap"> -->
+      <!--   <input class="menu__back left" type="button" value="&#8592;"> -->
 
-        <input class="menu__delete right" type="button" value="&#8594;">
-        <input class="menu__edit right" type="button" value="&#8592;">
-        <input class="menu__delete right" type="button" value="Delete">
-        <input class="menu__edit right" type="button" value="Edit">
-      </div>
-      <div class="site__global grid grid__col grid__col-1-2">
-        <ul class="global__parent site__section wrap grid__col grid__col-1-2">
-          <input class="parent__new topright" type="button" value="+">
+      <!--   <input class="menu__delete right" type="button" value="&#8594;"> -->
+      <!--   <input class="menu__edit right" type="button" value="&#8592;"> -->
+      <!--   <input class="menu__delete right" type="button" value="Delete"> -->
+      <!--   <input class="menu__edit right" type="button" value="Edit"> -->
+      <!-- </div> -->
+      <div class="site__global site__section grid grid__col grid__col-1-4">
+        <ul class="global__parent wrap focusable" tabindex="-1">
+          <!-- <input class="parent__new topright" type="button" value="+"> -->
         </ul>
-        <ul class="global__child site__section wrap grid__col grid__col-1-2">
-          <input class="child__new topright" type="button" value="+">
+        <ul class="global__child wrap focusable" tabindex="-1">
+          <!-- <input class="child__new topright" type="button" value="+"> -->
         </ul>
       </div>
-      <div class="site__edit hide site__section grid__col grid__col-1-2">
+      <div class="site__edit hide focusable site__section grid__col grid__col-3-4" tabindex="-1">
         <div class="edit__meta">
           <textarea class="edit__title wrap" placeholder="Title"></textarea>
           <textarea class="edit__tag hide wrap" placeholder="Tag"></textarea>
-          <input class="meta__switch topright" type="button" value="&#8596;">
+          <!-- <input class="meta__switch topright" type="button" value="&#8596;"> -->
         </div>
         <div class="edit__main">
           <textarea class="edit__content wrap" placeholder="Content"></textarea>
           <textarea class="edit__preamble hide wrap" placeholder="Preamble"></textarea>
-          <input class="main__switch topright" type="button" value="&#8596;">
+          <!-- <input class="main__switch topright" type="button" value="&#8596;"> -->
         </div>
       </div>
-      <div class="site__view site__section grid__col grid__col-1-2 wrap">
+      <div class="site__view site__section grid__col grid__col-3-4 wrap">
         <div class="begingroup hide"></div>
         <div class="view__title"></div>
         <div class="view__preamble hide"></div>
