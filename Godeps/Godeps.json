@@ -7,9 +7,19 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Comment": "v1.0.0-39-ge8f0f8a",
+			"Rev": "e8f0f8aaa98dfb6586cbdf2978d511e3199a960a"
+		},
+		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-60-gffe986a",
-			"Rev": "ffe986aba3e6cfcded8b06615965941408891ef0"
+			"Comment": "go1.0-cutoff-127-gd8eeeb8",
+			"Rev": "d8eeeb8bae8896dd8e1b7e514ab0d396c4f12a1b"
+		},
+		{
+			"ImportPath": "github.com/lib/pq/oid",
+			"Comment": "go1.0-cutoff-127-gd8eeeb8",
+			"Rev": "d8eeeb8bae8896dd8e1b7e514ab0d396c4f12a1b"
 		}
 	]
 }
