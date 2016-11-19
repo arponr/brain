@@ -17,16 +17,6 @@ $wrap-hpad: 1.5rem;
   }
 }
 
-.topright {
-  position: absolute;
-  top: $wrap-vpad / 2;
-  right: $wrap-hpad / 2;
-}
-
-input[type="button"] {
-  @extend %click;
-}
-
 .site {
   height: 100%;
   overflow: hidden;
@@ -34,56 +24,53 @@ input[type="button"] {
 
 $menu-height: $lineheight + 2 * $wrap-vpad;
 
-.site__menu {
-  width: 100%;
-  color: $color-light;
-  background: $background-base;
-  border-bottom: 1px solid $border-base;
-  height: $menu-height;
-
-  input[type="button"] {
-    &.left {
-      float: left;
-      margin-right: $wrap-hpad;
-    }
-
-    &.right {
-      float: right;
-      margin-left: $wrap-hpad;
-    }
-  }
-}
-
 .site__section {
   border-right: 1px solid $border-base;
-  /* height: calc(100% - #{$menu-height}); */
   overflow: scroll;
 }
 
 .site__global {
   background: $background-accent;
-  
-  li {
-    @extend %click;
-    margin-bottom: .75rem;
+}
 
-    &.active {
-      font-weight: bold;
-    }
+$prompt-width: 1.25rem;
+$prompt-height: 4rem;
+$term-hpad: 0.25rem;
+$term-vpad: 0.1rem;
+
+.global__term {
+  font-size: $size-small;
+}
+
+.global__term, .term__input {
+  height: 100%;
+}
+
+.input__cmd {
+  height: $prompt-height;
+}
+
+.term__entry {
+  width: 100%;
+  padding: $term-vpad $term-hpad;
+
+  .term__output & {
+    color: $color-fade;
   }
 }
 
-.global__parent,
-.global__child {
-  height: 50%;
-
-  &:focus li.selected {
-    text-decoration: underline;
-  }
+.input__prompt, .output__prompt {
+  float: left;
+  width: $prompt-width;
 }
 
-.global__parent {
-  border-bottom: 1px solid $border-base;
+.input__cmd, .output__cmd {
+  width: calc(100% - #{$prompt-width});
+  display: inline-block;
+}
+
+.output__results {
+  width: 100%;
 }
 
 $edit-meta-height: 1.0rem + 2 * $wrap-vpad;

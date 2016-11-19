@@ -5,6 +5,7 @@ var macros = {
     isoto: "\\xrightarrow{\\sim}",
     shimplies: "\\Rightarrow",
     c: "\\colon",
+    lc: ":\\!",
     ce: "\\mathrel{:=}",
     ec: "\\mathrel{=:}",
     l: "\\left",

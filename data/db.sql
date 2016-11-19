@@ -1,18 +1,12 @@
 CREATE TABLE nodes (
-       id        serial PRIMARY KEY,
-       parent_id int,
-       tag       text,
+       tag       text PRIMARY KEY,
        title     text,
        preamble  text,
        content   text
 );
 
-CREATE TABLE archives (
-       id       serial    PRIMARY KEY,
-       node_id  int       REFERENCES nodes NOT NULL,
-       title    text,
-       preamble text,
-       content  text,
-       time     timestamp DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE edges (
+       one       text    REFERENCES nodes NOT NULL,
+       two       text    REFERENCES nodes NOT NULL,
+       PRIMARY KEY (one, two)
 );
-CREATE INDEX ind_node_archive ON archives (node_id);

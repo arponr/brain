@@ -1,303 +1,174 @@
 function Brain($, marked) {
-    marked.setOptions({ smartypants: true });
 
-    var root = { id: 0 };
+    var debug = true;
 
-    var browser = [
-        { node: root, children: [], selected: undefined, active: undefined },
-        { node: {}, children: [], selected: undefined },
-    ];
+    // ----------------------------------------------------------------------
     
-    var compileTimeout = 0,
-        updateTimeout = 0;
-
-    var editGroups,
-        focusCycle,
-        modeCycle;
-
-    var focusInd = 0,
-        modeInd = 0;
-
+    var ws;
     $(document).ready(function() {
-        initBrowser();
+        ws = new WebSocket('ws://' + location.host + '/socket');
+	ws.onopen = function() {
+	    initTerm();
+	};
+	ws.onclose = function() {
+	    // shutdown terminal
+	};
+	ws.onmessage = onMessage;
+                
         initEdit();
         initFocus();
         initModes();
     });
 
-    function initBrowser() {
-        browser[0].el = $('.global__parent');
-        browser[1].el = $('.global__child');
-        
-        getChildren(root.id, function(children) {
-            browser[0].children = children;
-            refreshBrowser(0);
-            selectNode(0, 0);
-        });
+    function send(m) {
+        if (debug) console.log('<', m)
+        ws.send(JSON.stringify(m));
+    }
 
-        var j = 106,
-            k = 107,
-            plus = 61,
-            minus = 45,
-            enter = 13,
-            lbrak = 91;
-
-        for (var level = 0; level < browser.length; level++) {
-            (function(level) {
-                browser[level].el.keypress(function(e) {
-                    switch (e.charCode) {
-                    case j:
-                        scrollBrowser(level, 1);
-                        break;
-                    case k:
-                        scrollBrowser(level, -1);
-                        break;
-                    case plus:
-                        newNode(level);
-                        break;
-                    case minus:
-                        if (browser[level].selected !== undefined &&
-                            confirm("sure you want to delete this?"))
-                            deleteNode(level);
-                        break;
-                    case enter:
-                        if (browser[level].selected !== undefined) {
-                            loadNode(level);
-                        }
-                        break;
-                    case lbrak:
-                        directoryUp();
-                        break;
-                    default:
-                        return;
-                    }    
-                });
-            })(level);
+    function onMessage(d) {
+        var m = JSON.parse(d.data);
+        if (debug) console.log('>', m)
+        switch (m.Action) {
+        case 'cd':
+            loadNode(m.Node);
+            break;
+        case 'rm':
+            clearNode();
+            break;
+        case 'results':
+            echoTerm(m.Id, m.Results);
+            break;
         }
     }
 
-    function getNode(id, cb) {
-        $.ajax({
-            method: 'POST',
-            url: 'data/getnode',
-            dataType: 'json',
-            data : JSON.stringify({ id: id }),
-        }).done(function(msg) {
-            cb(msg.node);
-        });
+    function loadNode(node) {
+        $('.edit__tag').val(node.Tag).hide();
+        $('.edit__title').val(node.Title).show();
+        $('.edit__preamble').val(node.Preamble).hide();
+        $('.edit__content').val(node.Content).show();
+        compile();
     }
 
-    function getChildren(parentId, cb) {
-        $.ajax({
-            method: 'POST',
-            url: 'data/getchildren',
-            dataType: 'json',
-            data : JSON.stringify({ parentId: parentId }),
-        }).done(function(msg) {
-            cb(msg.children);
-        });
-    }
-
-    function updateNode(data) {
-        var b = browser[1];
-        if (!b.node.id) return;
-        
-        for (k in data) {
-            b.node[k] = data[k];
-        }
-        if (data.title) {
-            b.node.el.text(data.title);
-        }
-        
+    var updateTimeout;
+    function updateNode() {
         clearTimeout(updateTimeout);
-        updateTimeout = setTimeout(function() {
-            $.ajax({
-                method: 'POST',
-                url: 'data/updatenode',
-                dataType: 'json',
-                data : JSON.stringify({ node: b.node }),
+        updateTimeout = setTimeout(function() {  
+            send({
+                Id: 0,
+                Action: "update",
+                Node: {
+                    Tag: $('.edit__tag').val(),
+                    Title: $('.edit__title').val(),
+                    Preamble: $('.edit__preamble').val(),
+                    Content: $('.edit__content').val(),
+                },
             });
         }, 1000);
     }
 
-    function deleteNode(level) {
-        var b = browser[level];
-        $.ajax({
-            method: 'POST',
-            url: 'data/deletenode',
-            dataType: 'json',
-            data : JSON.stringify({ id: b.children[b.selected].id }),
-        }).done(function() {
-            getChildren(b.node.id, function(children) {
-                if (level === 0) {
-                    if (children.length === 0) {
-                        directoryUp();
-                        return;
-                    }
-                    
-                    if (b.active === b.selected) {
-                        browser[1].node = {};
-                        browser[1].children = [];
-                        refreshBrowser(1);
-                        b.active = undefined;
-                    }
-                }
-                
-                b.children = children;
-                refreshBrowser(level);
-                if (children.length > 0) {
-                    selectNode(level, 0);
-                } else {
-                    b.selected = undefined;
-                }
-            });
+    function clearNode() {
+        $.each([
+            $('.edit__tag'),
+            $('.edit__title'),
+            $('.edit__preamble'),
+            $('.edit__content'),
+        ], function(i, v) {
+            v.val('');
+        });
+        $.each([
+            $('.begingroup'),
+            $('.view__title'),
+            $('.view__preamble'),
+            $('.view__content'),
+            $('.endgroup'),
+        ], function(i, v) {
+            v.html('');
         });
     }
 
-    function newNode(level) {
-        if (browser[level].node.id === undefined) {
-            return;
-        }
+    // ----------------------------------------------------------------------
+
+    var termInd;
+    
+    function clearTerm() {
+        $('.term__output').html('');
+        $('.input__cmd').val('');
+    }
+
+    function echoTerm(ind, val) {
+        $('.entry-'+ind + ' .output__results').text(val);
+    }
+    
+    function iterateTerm() {
+        var outputEntry =  $('<div>')
+            .addClass('term__entry').addClass('entry-'+termInd);
+        $('<div>')
+            .addClass('output__prompt')
+            .text('>')
+            .appendTo(outputEntry);
+        $('<div>')
+            .addClass('output__cmd')
+            .text($('.input__cmd').val())
+            .appendTo(outputEntry);
+        $('<div>')
+            .addClass('output__results')
+            .appendTo(outputEntry);
+        $('.term__output').append(outputEntry)
+
+        $('.input__cmd').val('');
+        termInd++;
+    }
+
+    function interpretTerm() {
+        var input = $('.input__cmd').val();
         
-        $.ajax({
-            method: 'POST',
-            url: 'data/newnode',
-            dataType: 'json',
-            data : JSON.stringify({ parentId: browser[level].node.id }),
-        }).done(function(msg) {
-            var node = msg.node;
-            browser[level].children.unshift(node);
-            if (browser[level].selected !== undefined)
-                browser[level].selected++;
-            if (browser[level].active !== undefined)
-                browser[level].active++;
-            prependNode(level, node);
-            selectNode(level, 0);
-            loadNode(level);
-        });
-    }
-
-    function prependNode(level, node) {
-        node.el = $('<li></li>').text(node.title)
-            .addClass('node-' + node.id)
-            .prependTo(browser[level].el);
-    }
-
-    function selectNode(level, selection) {
-        var b = browser[level];
-        b.el.find("li").removeClass('selected');
-        b.children[selection].el.addClass('selected');
-        b.selected = selection;
-    }
-
-    function refreshBrowser(level) {
-        var b = browser[level];
-        b.el.find('li').remove();
-        for (var i = b.children.length - 1; i >= 0 ; i--) {
-            prependNode(level, b.children[i]);
-        }
-
-        if (level === 0) {
-            b.active = undefined;
-        }
-
-        if (level === 1) {
-            $('.edit__title').val(b.node.title).show();
-            $('.edit__tag').val(b.node.tag).hide();
-            $('.edit__content').val(b.node.content).show();
-            $('.edit__preamble').val(b.node.preamble).hide();
-            compile();
-        }
-    }
-    
-    function scrollBrowser(level, dir) {
-        var b = browser[level];
-        if (b.selected === undefined)
-            return;
-        selectNode(
-            level,
-            (b.selected + dir + b.children.length) % b.children.length
-        );
-    }
-
-    function browserClone(from, to) {
-        for (k in browser[from]) {
-            if (k != "el")
-                browser[to][k] = browser[from][k];
-        }
-    }
-
-    function activateSelectedNode() {
-        var b0 = browser[0];
-        if (b0.active !== undefined)
-            b0.children[b0.active].el.removeClass("active");
-        b0.children[b0.selected].el.addClass("active");
-        b0.active = b0.selected;
-    }
-    
-    function loadNode(level) {
-        var b0 = browser[0],
-            b1 = browser[1];
-
-        if (level === 1) {
-            browserClone(1, 0);
-            refreshBrowser(0);
-            selectNode(0, b0.selected);
-        } else if (b0.active === b0.selected) {
+        if (input.trim() === 'clear') {
+            clearTerm();
             return;
         }
 
-        b1.node = b0.children[b0.selected];
-        activateSelectedNode();
-        switchFocusTo(0);
+        var cmd = input.match(/\S+/g)
+        if (cmd) {
+            var action = cmd[0];
+            var flags = [];
+            var args = [];
+            for (var i = 1; i < cmd.length; i++) {
+                if (cmd[i].startsWith('--')) {
+                    flags.push(cmd[i].substring(2));
+                } else {
+                    args.push(cmd[i]);
+                }
+            }
+            send({
+                Id: termInd,
+                Action: action,
+                Flags: flags,
+                Args: args,
+            });
+        }
 
-        getChildren(b1.node.id, function(children) {
-            b1.children = children;
-            refreshBrowser(1);
-            if (children.length > 0) {
-                selectNode(1, 0);
-            } else {
-                b1.selected = undefined;
+        iterateTerm();
+    }
+    
+    function initTerm() {
+        termInd = 0;
+        $('.input__prompt').text('>');
+        $('.term__input .term__entry').addClass('entry-'+termInd);
+        termInd++;
+        
+        $('.term__input').keypress(function(e) {
+            // console.log(e.keyCode);
+            // enter key (and not ctrl+m)
+            if (e.keyCode === 13 && !e.ctrlKey) {
+                interpretTerm();
+                e.preventDefault();
             }
         });
     }
 
-    function directoryUp() {
-        var b0 = browser[0], b1 = browser[1];
-        if (b0.node.id === root.id) {
-            b1.node = {};
-            b1.children = [];
-            refreshBrowser(1);
-            refreshBrowser(0);
-            selectNode(0, b0.selected);
-            return;
-        }
-
-        browserClone(0, 1);
-        refreshBrowser(1);
-        selectNode(1, b0.selected);
-
-        var parentId = b0.node.parentId;        
-        if (parentId === root.id) {
-            b0.node = root;
-        } else {
-            getNode(parentId, function(node) {
-                b0.node = node;
-            });
-        }
-        
-        getChildren(parentId, function(children) {
-            b0.children = children;
-            refreshBrowser(0);
-            for (var i = 0; i < children.length; i++)
-                if (children[i].id === b1.node.id) {
-                    selectNode(0, i);
-                    break;
-                }
-            activateSelectedNode();
-        });
-    }
-
+    // ----------------------------------------------------------------------
+    
+    var compileTimeout;
     function compile() {
         clearTimeout(compileTimeout);
         compileTimeout = setTimeout(function() {
@@ -321,27 +192,8 @@ function Brain($, marked) {
         }, 1000);
     }
 
+    var editGroups;
     function initEdit() {
-        $('.edit__title').on('input', function(e) {
-            updateNode({ title: e.target.value });
-            compile();
-        });
-        $('.edit__tag').on('input', function(e) {
-            updateNode({ tag: e.target.value });
-            compile();
-        });
-        $('.edit__content').on('input', function(e) {
-            updateNode({ content: e.target.value });
-            compile();
-        });
-        $('.edit__preamble').on('input', function(e) {
-            updateNode({ preamble: e.target.value });
-            compile();
-        });
-
-        var ctrli = 9,
-            ctrlu = 21;
-
         editGroups = [
             { vis: $('.edit__title'), hid: $('.edit__tag') },
             { vis: $('.edit__content'), hid: $('.edit__preamble') },
@@ -350,13 +202,17 @@ function Brain($, marked) {
         for (var i = 0; i < editGroups.length; i++) {
             (function(i) {
                 $.each(editGroups[i], function(k,v) {
+                    v.on('input', function(e) {
+                        updateNode();
+                        compile();
+                    });
                     v.keypress(function(e) {
                         if (e.ctrlKey) {
-                            switch (e.charCode) {
-                            case ctrlu:
+                            switch (e.keyCode) {
+                            case 9: // ctrl+u
                                 editGroups[i ^ 1].vis.focus();
                                 break;
-                            case ctrli:
+                            case 21: // ctrl+i
                                 editGroups[i].vis.hide()
                                 editGroups[i].hid.show().focus()
                                 var t = editGroups[i].vis;
@@ -372,6 +228,13 @@ function Brain($, marked) {
             })(i);
         }
     }
+
+    // ----------------------------------------------------------------------
+    
+    var focusInd,
+        modeInd,
+        focusCycle,
+        modeCycle;
 
     function switchFocusTo(ind) {
         if (!focusCycle[focusInd].visible) {
@@ -408,13 +271,9 @@ function Brain($, marked) {
         });
         
         focusCycle = [
-            {   // global__parent
+            {   // site__global
                 visible: true,
-                focus: function() { $('.global__parent').focus(); }
-            },
-            {   // global__child
-                visible: true,
-                focus: function() { $('.global__child').focus(); }
+                focus: function() { $('.input__cmd').focus(); }
             },
             {   // site__edit
                 visible: false,
@@ -422,11 +281,12 @@ function Brain($, marked) {
             },
         ];
 
+        focusInd = 0;
         focusCycle[focusInd].focus();
 
-        var ctrlc = 3;
         $('.site').keypress(function(e) {
-            if (e.ctrlKey && e.charCode === ctrlc) {
+            // ctrl+c
+            if (e.ctrlKey && e.charCode === 3) {
                 switchFocus();
                 e.preventDefault();
             }
@@ -442,59 +302,63 @@ function Brain($, marked) {
         modeCycle = [
             // browse + view
             function() {
-                $.each([$('.site__edit'), $('.site__view')], function(i, o) {
-                    o.removeClass('grid__col-2-4').addClass('grid__col-3-4');
-                });
+                // $.each([$('.site__edit'), $('.site__view')], function(i, o) {
+                //     o.removeClass('grid__col-2-4').addClass('grid__col-3-4');
+                // });
 
                 $('.site__global').show();
                 $('.site__view').show();
                 $('.site__edit').hide();
 
-                focusCycle[0].visible = focusCycle[1].visible = true;
-                focusCycle[2].visible = false;
-                if (focusInd == 2) switchFocus();
+                focusCycle[0].visible = true;
+                focusCycle[1].visible = false;
+                if (focusInd === 1) switchFocus();
             },
             // browse + edit
             function() {
-                $.each([$('.site__edit'), $('.site__view')], function(i, o) {
-                    o.removeClass('grid__col-2-4').addClass('grid__col-3-4');
-                });
+                // $.each([$('.site__edit'), $('.site__view')], function(i, o) {
+                //     o.removeClass('grid__col-2-4').addClass('grid__col-3-4');
+                // });
 
                 $('.site__global').show();
                 $('.site__view').hide();
                 $('.site__edit').show();
 
-                focusCycle[0].visible = focusCycle[1].visible = true;
-                focusCycle[2].visible = true;
+                focusCycle[0].visible = true;
+                focusCycle[1].visible = true;
             },
             // edit + view
             function() {
-                $.each([$('.site__edit'), $('.site__view')], function(i, o) {
-                    o.removeClass('grid__col-3-4').addClass('grid__col-2-4');
-                    o.show();
-                });
+                // $.each([$('.site__edit'), $('.site__view')], function(i, o) {
+                //     o.removeClass('grid__col-3-4').addClass('grid__col-2-4');
+                //     o.show();
+                // });
 
                 $('.site__global').hide();
                 $('.site__view').show();
                 $('.site__edit').show();
 
-                focusCycle[0].visible = focusCycle[1].visible = false;
-                focusCycle[2].visible = true;
-                if (focusInd == 0 || focusInd == 1) switchFocus();
+                focusCycle[0].visible = false;
+                focusCycle[1].visible = true;
+                if (focusInd === 0) switchFocus();
             },
         ];
 
+        modeInd = 0;
         modeCycle[modeInd]();
 
-        var ctrlm = 13;
         $('.site').keypress(function(e) {
-            if (e.ctrlKey && e.charCode === ctrlm) {
+            // ctrl+v
+            if (e.ctrlKey && e.keyCode === 22) {
                 switchMode();
                 e.preventDefault();
             }
         });
     }
 
+    // ----------------------------------------------------------------------
+    
+    marked.setOptions({ smartypants: true });
     
     function texdown(text) {
         var math = [];
@@ -546,10 +410,5 @@ function Brain($, marked) {
     }
 }
 
-Brain.prototype.toTag = function(tag) {
-    var top = $('.site__view').scrollTop();
-    var delta = $('#' + tag).offset().top - $('.site__view').offset().top
-    $('.site__view').scrollTop(top + delta);
-}
 
 var brain = new Brain(jQuery, marked);
