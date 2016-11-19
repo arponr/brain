@@ -6,7 +6,8 @@ function Brain($, marked) {
     
     var ws;
     $(document).ready(function() {
-        ws = new WebSocket('ws://' + location.host + '/socket');
+        ws = new WebSocket(
+            (location.protocol === "https:" ? "wss://" : "ws://") + location.host + '/socket');
 	ws.onopen = function() {
 	    initTerm();
 	};
