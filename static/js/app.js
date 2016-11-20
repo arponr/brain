@@ -10,9 +10,11 @@ function Brain($, marked) {
             (location.protocol === "https:" ? "wss://" : "ws://") + location.host + '/socket');
 	ws.onopen = function() {
 	    initTerm();
+            setInterval(function() { send({Action: "ping"}); }, 30000);
 	};
 	ws.onclose = function() {
-	    // shutdown terminal
+	    $('.term__input .term__results').text('socket has closed');
+            $('.input__cmd').remove();
 	};
 	ws.onmessage = onMessage;
                 

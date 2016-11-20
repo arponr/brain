@@ -92,6 +92,8 @@ func (s *Session) Handle(m *Message) (err error) {
 	}()
 
 	switch a := m.Action; a {
+	case "ping":
+		return nil
 	case "cd", "mknode", "rmnode":
 		if len(m.Args) != 1 {
 			return fmt.Errorf("%v accepts exactly one argument (node tag)", a)
