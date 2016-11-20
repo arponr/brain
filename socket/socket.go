@@ -61,7 +61,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		log.Println(m)
 		if err := s.Handle(m); err != nil {
 			log.Println(err)
 		}

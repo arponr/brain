@@ -57,6 +57,8 @@ func UpdateNode(tag string, n *Node) error {
 	q := "UPDATE nodes SET tag = $1, title = $2, preamble = $3, content = $4 WHERE tag = $5"
 	_, err := db.Exec(q, n.Tag, n.Title, n.Preamble, n.Content, tag)
 	return err
+
+	// update edges if tag gets updated
 }
 
 // func ArchiveNode(n *Node) error {

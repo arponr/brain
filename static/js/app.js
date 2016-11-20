@@ -10,6 +10,9 @@ function Brain($, marked) {
             (location.protocol === "https:" ? "wss://" : "ws://") + location.host + '/socket');
 	ws.onopen = function() {
 	    initTerm();
+            initEdit();
+            initFocus();
+            initModes();
             setInterval(function() { send({Action: "ping"}); }, 30000);
 	};
 	ws.onclose = function() {
@@ -17,10 +20,6 @@ function Brain($, marked) {
             $('.input__cmd').remove();
 	};
 	ws.onmessage = onMessage;
-                
-        initEdit();
-        initFocus();
-        initModes();
     });
 
     function send(m) {
@@ -212,10 +211,10 @@ function Brain($, marked) {
                     v.keypress(function(e) {
                         if (e.ctrlKey) {
                             switch (e.keyCode) {
-                            case 9: // ctrl+u
+                            case 21: // ctrl+u
                                 editGroups[i ^ 1].vis.focus();
                                 break;
-                            case 21: // ctrl+i
+                            case 9: // ctrl+i
                                 editGroups[i].vis.hide()
                                 editGroups[i].hid.show().focus()
                                 var t = editGroups[i].vis;
@@ -240,7 +239,7 @@ function Brain($, marked) {
         modeCycle;
 
     function switchFocusTo(ind) {
-        if (!focusCycle[focusInd].visible) {
+        if (!focusCycle[ind].visible) {
             return;
         }
         focusInd = ind;
@@ -285,7 +284,7 @@ function Brain($, marked) {
         ];
 
         focusInd = 0;
-        focusCycle[focusInd].focus();
+        switchFocusTo(focusInd);
 
         $('.site').keypress(function(e) {
             // ctrl+c
@@ -305,9 +304,9 @@ function Brain($, marked) {
         modeCycle = [
             // browse + view
             function() {
-                // $.each([$('.site__edit'), $('.site__view')], function(i, o) {
-                //     o.removeClass('grid__col-2-4').addClass('grid__col-3-4');
-                // });
+                $.each([$('.site__edit'), $('.site__view')], function(i, o) {
+                    o.removeClass('grid__col-1-2').addClass('grid__col-2-3');
+                });
 
                 $('.site__global').show();
                 $('.site__view').show();
@@ -315,13 +314,13 @@ function Brain($, marked) {
 
                 focusCycle[0].visible = true;
                 focusCycle[1].visible = false;
-                if (focusInd === 1) switchFocus();
+                switchFocusTo(0);
             },
             // browse + edit
             function() {
-                // $.each([$('.site__edit'), $('.site__view')], function(i, o) {
-                //     o.removeClass('grid__col-2-4').addClass('grid__col-3-4');
-                // });
+                $.each([$('.site__edit'), $('.site__view')], function(i, o) {
+                    o.removeClass('grid__col-1-2').addClass('grid__col-2-3');
+                });
 
                 $('.site__global').show();
                 $('.site__view').hide();
@@ -329,13 +328,13 @@ function Brain($, marked) {
 
                 focusCycle[0].visible = true;
                 focusCycle[1].visible = true;
+                switchFocusTo(1);
             },
             // edit + view
             function() {
-                // $.each([$('.site__edit'), $('.site__view')], function(i, o) {
-                //     o.removeClass('grid__col-3-4').addClass('grid__col-2-4');
-                //     o.show();
-                // });
+                $.each([$('.site__edit'), $('.site__view')], function(i, o) {
+                    o.removeClass('grid__col-2-3').addClass('grid__col-1-2');
+                });
 
                 $('.site__global').hide();
                 $('.site__view').show();
@@ -343,7 +342,7 @@ function Brain($, marked) {
 
                 focusCycle[0].visible = false;
                 focusCycle[1].visible = true;
-                if (focusInd === 0) switchFocus();
+                switchFocusTo(1);
             },
         ];
 
