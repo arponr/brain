@@ -180,6 +180,7 @@ function Brain($, marked) {
             $('.endgroup').html("$\\endgroup$");
             
             $('.view__title').text($('.edit__title').val());
+            $('.view__tag').text($('.edit__tag').val());
             
             var preamble = $('.edit__preamble').val();
             preamble = $.trim(preamble) ? ("$" + preamble + "$") : "";

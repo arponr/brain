@@ -2,6 +2,7 @@ package data
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	//	"sort"
 	// "time"
@@ -54,11 +55,22 @@ func NewNode(tag string) (*Node, error) {
 }
 
 func UpdateNode(tag string, n *Node) error {
-	q := "UPDATE nodes SET tag = $1, title = $2, preamble = $3, content = $4 WHERE tag = $5"
-	_, err := db.Exec(q, n.Tag, n.Title, n.Preamble, n.Content, tag)
-	return err
+	// if tag != n.Tag {
+	// 	q := "UPDATE edges SET " +
+	// 		"CASE " +
+	// 		"WHEN one = $2 THEN one = LEAST($1,two), two = GREATEST($1,two) " +
+	// 		"WHEN two = $2 THEN one = LEAST($1,one), two = GREATEST($1,one) " +
+	// 		"END " +
+	// 		"WHERE one = $2 OR two = $2"
+	// 	_, err := db.Exec(q, n.Tag, tag)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	// update edges if tag gets updated
+	q := "UPDATE nodes SET title = $2, preamble = $3, content = $4 WHERE tag = $1"
+	_, err := db.Exec(q, tag, n.Title, n.Preamble, n.Content)
+	return err
 }
 
 // func ArchiveNode(n *Node) error {
@@ -82,6 +94,8 @@ func DeleteNode(tag string) error {
 func NewEdge(tagOne, tagTwo string) error {
 	if tagOne > tagTwo {
 		tagOne, tagTwo = tagTwo, tagOne
+	} else if tagOne == tagTwo {
+		return fmt.Errorf("self-edges are useless. i think.")
 	}
 	q := "INSERT INTO edges (one, two) VALUES ($1, $2)"
 	_, err := db.Exec(q, tagOne, tagTwo)
