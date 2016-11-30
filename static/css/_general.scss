@@ -28,7 +28,7 @@ html, body {
 }
 
 html {
-  font-family: $font-main;
+  font-family: $font-input;
   font-size: $size-base;
   line-height: $lineheight-unitless;
   color: $color-base;
@@ -98,4 +98,30 @@ input, textarea {
 textarea {
   resize: none;
   display: block;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print {
+    &, & * {
+      visibility: visible;
+    }
+
+    & {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: auto;
+      height: auto;
+      margin: 0;
+      padding: 0;
+    }
+
+    &, .site {
+      overflow: visible;
+    }
+  }
 }

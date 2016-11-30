@@ -27,6 +27,11 @@
     }
   }
 
+  code {
+    font-family: $font-code;
+    font-size: $size-code;
+  }
+
   hr,
   blockquote,
   figure {

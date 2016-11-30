@@ -20,7 +20,7 @@ html, body {
   height: 100%; }
 
 html {
-  font-family: "Menlo", monospace, "Helvetica Neue", sans-serif;
+  font-family: "Menlo", monospace;
   font-size: 13px;
   line-height: 1.3;
   color: #333333;
@@ -75,6 +75,22 @@ textarea {
   resize: none;
   display: block; }
 
+@media print {
+  body * {
+    visibility: hidden; }
+
+  .print, .print * {
+    visibility: visible; }
+  .print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0; }
+  .print, .print .site {
+    overflow: visible; } }
 .grid__col {
   float: left;
   position: relative;
@@ -192,6 +208,9 @@ textarea {
       .text h6 + p:after {
         content: " ";
         display: block; }
+  .text code {
+    font-family: "Menlo", monospace;
+    font-size: 14px; }
   .text hr,
   .text blockquote,
   .text figure {
@@ -227,39 +246,26 @@ textarea {
       .text ul li ul li, .text ul li ol li, .text ol li ul li, .text ol li ol li {
         margin-bottom: 0.1rem; }
 
-.d3 svg {
-  background-color: #FFF;
-  cursor: default;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
-  user-select: none; }
-.d3 svg:not(.active):not(.ctrl) {
-  cursor: crosshair; }
-.d3 path.link {
-  fill: none;
-  stroke: #000;
-  stroke-width: 2px;
-  cursor: default; }
-.d3 svg:not(.active):not(.ctrl) path.link {
-  cursor: pointer; }
-.d3 path.link.selected {
-  stroke-dasharray: 10,2; }
-.d3 path.link.dragline {
-  pointer-events: none; }
-.d3 path.link.hidden {
-  stroke-width: 0; }
-.d3 circle.node {
-  stroke-width: 1.5px;
-  cursor: pointer; }
-.d3 circle.node.reflexive {
-  stroke: #000 !important;
-  stroke-width: 2.5px; }
-.d3 text {
-  font-size: 0.9em;
-  pointer-events: none; }
-.d3 text.id {
-  text-anchor: middle; }
+@media print {
+  body * {
+    visibility: hidden; }
+
+  .site {
+    overflow: visible; }
+
+  .site__view {
+    overflow: visible; }
+
+  .site__view, .site__view * {
+    visibility: visible; }
+  .site__view {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: none; } }
 
 /*# sourceMappingURL=style.css.map */

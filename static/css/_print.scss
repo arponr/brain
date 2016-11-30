@@ -1,0 +1,30 @@
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .site {
+    overflow: visible;
+  }
+
+  .site__view {
+    overflow: visible;
+  }
+  
+  .site__view {
+    &, & * {
+      visibility: visible;
+    }
+
+    & {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: auto;
+      height: auto;
+      margin: 0;
+      padding: 0;
+      border: none;
+    }
+  }
+}

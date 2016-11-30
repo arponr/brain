@@ -73,6 +73,25 @@ func UpdateNode(tag string, n *Node) error {
 	return err
 }
 
+func MoveNode(tagOld, tagNew string) error {
+	// if tag != n.Tag {
+	// 	q := "UPDATE edges SET " +
+	// 		"CASE " +
+	// 		"WHEN one = $2 THEN one = LEAST($1,two), two = GREATEST($1,two) " +
+	// 		"WHEN two = $2 THEN one = LEAST($1,one), two = GREATEST($1,one) " +
+	// 		"END " +
+	// 		"WHERE one = $2 OR two = $2"
+	// 	_, err := db.Exec(q, n.Tag, tag)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+
+	q := "UPDATE nodes SET title = $2, preamble = $3, content = $4 WHERE tag = $1"
+	_, err := db.Exec(q, tag, n.Title, n.Preamble, n.Content)
+	return err
+}
+
 // func ArchiveNode(n *Node) error {
 // 	q := "INSERT INTO archives (node_id, content) VALUES ($1, $2, $3)"
 // 	_, err := db.Exec(q, n.Id, n.Content)
