@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 
-	"github.com/arponr/brain/data"
+	"github.com/arponr/witt/data"
 )
 
 type Handler interface {

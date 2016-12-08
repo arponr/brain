@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/arponr/brain/data"
-	"github.com/arponr/brain/socket"
+	"github.com/arponr/witt/data"
+	"github.com/arponr/witt/socket"
 )
 
 func main() {
