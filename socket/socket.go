@@ -8,8 +8,8 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/arponr/brain/data"
-	"github.com/arponr/brain/ui"
+	"github.com/arponr/witt/data"
+	"github.com/arponr/witt/ui"
 )
 
 type Message struct {
